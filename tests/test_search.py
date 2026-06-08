@@ -34,7 +34,7 @@ def test_search_returns_cited_hits(tmp_path):
     db = tmp_path / "s.db"
     emb = Embedder()
     build_index(db, chunk_vault(VAULT, COLREGS), emb)
-    idx = Index.open(db, emb)
+    idx = Index.open(db)
     hits = search(idx, emb, "lights for a boat under sail", limit=3)
     assert hits
     assert isinstance(hits[0].score, float)

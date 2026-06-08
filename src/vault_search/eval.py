@@ -41,20 +41,20 @@ def run_eval(golden: Path, vault: Path, profile: VaultProfile, db: Path) -> dict
     {retriever: {"r1","r3","r5","mrr"}}."""
     emb = Embedder()
     build_index(db, chunk_vault(vault, profile), emb)
-    index = Index.open(db, emb)
     queries = yaml.safe_load(golden.read_text())["queries"]
 
     names = ["keyword", "vector", "hybrid"]
     agg = {n: {"r1": 0.0, "r3": 0.0, "r5": 0.0, "mrr": 0.0} for n in names}
-    for q in queries:
-        expect = set(str(x) for x in q["expect"])
-        rets = _retrievers(index, emb, q["query"])
-        for n in names:
-            labels = _labels(index, rets[n])
-            agg[n]["r1"] += recall_at_k(labels, expect, 1)
-            agg[n]["r3"] += recall_at_k(labels, expect, 3)
-            agg[n]["r5"] += recall_at_k(labels, expect, 5)
-            agg[n]["mrr"] += reciprocal_rank(labels, expect)
+    with Index.open(db) as index:
+        for q in queries:
+            expect = set(str(x) for x in q["expect"])
+            rets = _retrievers(index, emb, q["query"])
+            for n in names:
+                labels = _labels(index, rets[n])
+                agg[n]["r1"] += recall_at_k(labels, expect, 1)
+                agg[n]["r3"] += recall_at_k(labels, expect, 3)
+                agg[n]["r5"] += recall_at_k(labels, expect, 5)
+                agg[n]["mrr"] += reciprocal_rank(labels, expect)
 
     total = len(queries)
     print(f"\n{'retriever':<10} {'R@1':>6} {'R@3':>6} {'R@5':>6} {'MRR':>6}")

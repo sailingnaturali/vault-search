@@ -9,7 +9,6 @@ from pathlib import Path
 
 import sqlite_vec
 
-from vault_search.embed import Embedder
 from vault_search.models import Chunk
 
 _WORD = re.compile(r"[A-Za-z0-9]+")
@@ -70,7 +69,7 @@ class Index:
         self._conn = conn
 
     @classmethod
-    def open(cls, db_path: Path, embedder: Embedder) -> "Index":
+    def open(cls, db_path: Path) -> "Index":
         if not Path(db_path).exists():
             raise FileNotFoundError(
                 f"index not built: {db_path} — run `vault-search build` first")

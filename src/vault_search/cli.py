@@ -38,10 +38,10 @@ def build(vault: str, profile: str = "colregs", db: str = "vault.db") -> None:
 def query(text: str, db: str = "vault.db", limit: int = 5) -> None:
     """Run a hybrid query against a built index."""
     emb = Embedder()
-    idx = Index.open(Path(db), emb)
-    for hit in search(idx, emb, text, limit=limit):
-        typer.echo(f"[{hit.score:.4f}] {hit.chunk.citation}")
-        typer.echo(f"    {hit.chunk.text[:120].strip()}…")
+    with Index.open(Path(db)) as idx:
+        for hit in search(idx, emb, text, limit=limit):
+            typer.echo(f"[{hit.score:.4f}] {hit.chunk.citation}")
+            typer.echo(f"    {hit.chunk.text[:120].strip()}…")
 
 
 @app.command()

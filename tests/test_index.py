@@ -22,7 +22,7 @@ def test_build_then_bm25_and_knn_find_the_rule(tmp_path):
     emb = Embedder()
     build_index(db, chunk_vault(VAULT, COLREGS), emb)
 
-    idx = Index.open(db, emb)
+    idx = Index.open(db)
     # Sailing-lights queries should rank Rule 25 first over the Rule 30 decoy
     bm = idx.bm25("sidelights sternlight", n=5)
     assert bm                                  # rowids, best first
@@ -46,7 +46,7 @@ def test_rebuild_is_idempotent(tmp_path):
     chunks = chunk_vault(VAULT, COLREGS)
     build_index(db, chunks, emb)
     build_index(db, chunks, emb)               # second build must not error or double-count
-    idx = Index.open(db, emb)
+    idx = Index.open(db)
     assert idx.count() == len(chunks)
 
 
@@ -54,7 +54,7 @@ def test_get_chunk_unknown_rowid_raises(tmp_path):
     db = tmp_path / "colregs.db"
     emb = Embedder()
     build_index(db, chunk_vault(VAULT, COLREGS), emb)
-    idx = Index.open(db, emb)
+    idx = Index.open(db)
     with pytest.raises(KeyError):
         idx.get_chunk(99999)
 
@@ -63,5 +63,5 @@ def test_index_context_manager(tmp_path):
     db = tmp_path / "colregs.db"
     emb = Embedder()
     build_index(db, chunk_vault(VAULT, COLREGS), emb)
-    with Index.open(db, emb) as idx:
+    with Index.open(db) as idx:
         assert idx.count() > 0
