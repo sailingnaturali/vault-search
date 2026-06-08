@@ -58,6 +58,7 @@ def _split_sections(body: str) -> list[str]:
 
 
 def _window(section: str, max_tokens: int, overlap: int) -> list[str]:
+    """Slide a max_tokens-word window over the section, carrying `overlap` words between windows."""
     words = section.split()
     if len(words) <= max_tokens:
         return [section]
@@ -72,7 +73,8 @@ def _window(section: str, max_tokens: int, overlap: int) -> list[str]:
     return out
 
 
-def _chunk_headings(body, rel, breadcrumb, citation, meta, profile) -> list[Chunk]:
+def _chunk_headings(body: str, rel: str, breadcrumb: str, citation: str,
+                    meta: dict, profile: VaultProfile) -> list[Chunk]:
     chunks: list[Chunk] = []
     ordinal = 0
     for section in _split_sections(body):
