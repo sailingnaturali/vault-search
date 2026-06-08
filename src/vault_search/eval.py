@@ -36,6 +36,9 @@ def _retrievers(index: Index, emb: Embedder, query: str, pool: int = 20):
 
 
 def run_eval(golden: Path, vault: Path, profile: VaultProfile, db: Path) -> dict:
+    """Build an index from the vault, score keyword/vector/hybrid retrievers on the
+    golden set, print a comparison table, and return per-retriever averaged metrics
+    {retriever: {"r1","r3","r5","mrr"}}."""
     emb = Embedder()
     build_index(db, chunk_vault(vault, profile), emb)
     index = Index.open(db, emb)
@@ -55,7 +58,9 @@ def run_eval(golden: Path, vault: Path, profile: VaultProfile, db: Path) -> dict
 
     total = len(queries)
     print(f"\n{'retriever':<10} {'R@1':>6} {'R@3':>6} {'R@5':>6} {'MRR':>6}")
+    result: dict[str, dict[str, float]] = {}
     for n in names:
         m = {k: v / total for k, v in agg[n].items()}
+        result[n] = m
         print(f"{n:<10} {m['r1']:>6.2f} {m['r3']:>6.2f} {m['r5']:>6.2f} {m['mrr']:>6.2f}")
-    return agg
+    return result
