@@ -15,10 +15,20 @@ from vault_search.search import search
 app = typer.Typer(help="Local hybrid retrieval over markdown vaults.")
 
 
+def _resolve_profile(name: str):
+    """Resolve a profile name or exit with a friendly error."""
+    if name not in PROFILES:
+        typer.echo(
+            f"unknown profile {name!r}; available: {', '.join(sorted(PROFILES))}",
+            err=True)
+        raise typer.Exit(1)
+    return PROFILES[name]
+
+
 @app.command()
 def build(vault: str, profile: str = "colregs", db: str = "vault.db") -> None:
     """Chunk + embed a vault into a SQLite index."""
-    prof = PROFILES[profile]
+    prof = _resolve_profile(profile)
     chunks = chunk_vault(Path(vault), prof)
     build_index(Path(db), chunks, Embedder())
     typer.echo(f"indexed {len(chunks)} chunks -> {db}")
@@ -39,4 +49,5 @@ def evaluate(golden: str, vault: str, profile: str = "colregs",
              db: str = "vault.db") -> None:
     """Score keyword vs vector vs hybrid on a golden query set."""
     from vault_search.eval import run_eval
-    run_eval(Path(golden), Path(vault), PROFILES[profile], Path(db))
+    prof = _resolve_profile(profile)
+    run_eval(Path(golden), Path(vault), prof, Path(db))
