@@ -18,6 +18,11 @@ def rrf_fuse(rankings: list[list[int]], k: int = 60) -> list[tuple[int, float]]:
 
 def search(index: Index, embedder: Embedder, query: str, limit: int = 5,
            k: int = 60, pool: int = 20) -> list[SearchHit]:
+    """Hybrid search: BM25 + vector KNN, fused with Reciprocal Rank Fusion.
+
+    k: RRF constant (higher = flatter rank weighting).
+    pool: candidates pulled from each retriever before fusion (affects recall).
+    """
     bm25 = index.bm25(query, n=pool)
     vector = index.knn(embedder.encode([query])[0], n=pool)
     fused = rrf_fuse([bm25, vector], k=k)
