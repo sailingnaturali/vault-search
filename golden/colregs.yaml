@@ -1,0 +1,21 @@
+queries:
+  - query: what lights does a sailboat under engine show at night
+    expect: ["25"]
+  - query: who keeps clear, a sailing vessel or a boat trawling
+    expect: ["18"]
+  - query: sound signals in fog when at anchor
+    expect: ["35"]
+  - query: how do I overtake another boat safely
+    expect: ["13"]
+  - query: lights for a vessel not under command
+    expect: ["27"]
+  - query: when two power boats meet head on who turns
+    expect: ["14"]
+  - query: crossing situation give way vessel
+    expect: ["15"]
+  - query: shapes shown by a vessel restricted in ability to maneuver
+    expect: ["27"]
+  - query: anchor ball day shape
+    expect: ["30"]
+  - query: lookout requirement
+    expect: ["5"]
