@@ -20,7 +20,11 @@ class Embedder:
 
     @property
     def dim(self) -> int:
-        return _DIMS.get(self.model_name, 384)
+        if self.model_name not in _DIMS:
+            raise ValueError(
+                f"unknown embedding model {self.model_name!r}; "
+                f"add its dimension to _DIMS in embed.py")
+        return _DIMS[self.model_name]
 
     def encode(self, texts: list[str]) -> list[list[float]]:
         return [v.tolist() for v in self._model.embed(list(texts))]
