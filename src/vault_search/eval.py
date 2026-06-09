@@ -24,8 +24,8 @@ def reciprocal_rank(labels: list[str], expect: set[str]) -> float:
     return 0.0
 
 
-def _labels(index: Index, rowids: list[int]) -> list[str]:
-    return [index.get_chunk(r).metadata.get("number", "") for r in rowids]
+def _labels(index: Index, rowids: list[int], label_field: str) -> list[str]:
+    return [index.get_chunk(r).metadata.get(label_field, "") for r in rowids]
 
 
 def _retrievers(index: Index, emb: Embedder, query: str, pool: int = 20):
@@ -35,10 +35,22 @@ def _retrievers(index: Index, emb: Embedder, query: str, pool: int = 20):
     return {"keyword": bm, "vector": vec, "hybrid": hybrid}
 
 
-def run_eval(golden: Path, vault: Path, profile: VaultProfile, db: Path) -> dict:
+def run_eval(golden: Path, vault: Path, profile: VaultProfile, db: Path, label_field: str = "number") -> dict:
     """Build an index from the vault, score keyword/vector/hybrid retrievers on the
     golden set, print a comparison table, and return per-retriever averaged metrics
-    {retriever: {"r1","r3","r5","mrr"}}."""
+    {retriever: {"r1","r3","r5","mrr"}}.
+
+    Args:
+        golden: Path to a YAML file with a ``queries`` list of
+            ``{query: str, expect: list}`` entries.
+        vault: Root directory of the markdown vault to index.
+        profile: VaultProfile describing how to chunk the vault.
+        db: Path for the SQLite database (created or overwritten).
+        label_field: Chunk metadata field used as the match label when
+            computing recall and MRR.  Defaults to ``"number"`` (correct
+            for colregs-style vaults).  Set to e.g. ``"name"`` for vaults
+            whose anchors are keyed on a name field instead.
+    """
     emb = Embedder()
     build_index(db, chunk_vault(vault, profile), emb)
     queries = yaml.safe_load(golden.read_text())["queries"]
@@ -50,7 +62,7 @@ def run_eval(golden: Path, vault: Path, profile: VaultProfile, db: Path) -> dict
             expect = set(str(x) for x in q["expect"])
             rets = _retrievers(index, emb, q["query"])
             for n in names:
-                labels = _labels(index, rets[n])
+                labels = _labels(index, rets[n], label_field)
                 agg[n]["r1"] += recall_at_k(labels, expect, 1)
                 agg[n]["r3"] += recall_at_k(labels, expect, 3)
                 agg[n]["r5"] += recall_at_k(labels, expect, 5)
