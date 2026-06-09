@@ -39,3 +39,38 @@ def test_search_returns_cited_hits(tmp_path):
     assert hits
     assert isinstance(hits[0].score, float)
     assert hits[0].chunk.citation == "Rule 25 (international)"
+
+
+def test_search_mode_keyword_skips_vector(tmp_path, monkeypatch):
+    db = tmp_path / "m.db"
+    emb = Embedder()
+    build_index(db, chunk_vault(VAULT, COLREGS), emb)
+    idx = Index.open(db)
+    # keyword mode must not call knn at all
+    called = {"knn": 0}
+    real_knn = idx.knn
+    monkeypatch.setattr(idx, "knn", lambda *a, **k: (called.__setitem__("knn", called["knn"] + 1), real_knn(*a, **k))[1])
+    hits = search(idx, emb, "sidelights sternlight", limit=3, mode="keyword")
+    assert called["knn"] == 0
+    assert hits and hits[0].retriever == "keyword"
+    assert hits[0].chunk.metadata["number"] == "25"
+
+
+def test_search_mode_vector_ranks_paraphrase(tmp_path):
+    db = tmp_path / "v.db"
+    emb = Embedder()
+    build_index(db, chunk_vault(VAULT, COLREGS), emb)
+    idx = Index.open(db)
+    hits = search(idx, emb, "what shapes does a boat at anchor show", limit=3, mode="vector")
+    assert hits and hits[0].retriever == "vector"
+    assert hits[0].chunk.metadata["number"] == "30"
+
+
+def test_search_unknown_mode_raises(tmp_path):
+    db = tmp_path / "u.db"
+    emb = Embedder()
+    build_index(db, chunk_vault(VAULT, COLREGS), emb)
+    idx = Index.open(db)
+    import pytest
+    with pytest.raises(ValueError):
+        search(idx, emb, "anything", mode="bogus")
