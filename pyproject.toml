@@ -1,6 +1,6 @@
 [project]
 name = "vault-search"
-version = "0.2.0"
+version = "0.2.1"
 description = "Vault-agnostic local-first hybrid retrieval for markdown knowledge vaults"
 requires-python = ">=3.11"
 dependencies = [
